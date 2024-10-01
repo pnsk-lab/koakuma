@@ -1,0 +1,92 @@
+/* $Id$ */
+
+#gomain {
+	position: absolute;
+	left: 50px;
+}
+
+html {
+	font-family: sans-serif;
+	color: #606080;
+}
+
+h1 {
+	font-family: sans-serif;
+	border: solid 1px #606080;
+	padding: 5px;
+}
+
+h2 {
+	background-color: #606080;
+	color: #ffffff;
+	padding: 5px;
+	padding-left: 25px;
+}
+
+h3 {
+	background-color: #f0f0f0;
+	color: #606080;
+	padding: 5px;
+	padding-left: 10px;
+}
+
+hr {
+	border: solid 1px #606080;
+}
+
+table {
+	border: solid 1px #606080;
+	width: 100%;
+	padding: 5px;
+}
+
+th {
+	text-align: left;
+	width: 20%;
+}
+
+#space {
+	height: 152px;
+}
+
+#title {
+	padding: 5px;
+	background-color: #606080;
+	color: #ffffff;
+	font-size: 30px;
+	text-align: right;
+	padding-right: 25%;
+}
+
+#toctitle {
+	font-size: 30px;
+	background-color: #f8f8f8;
+}
+
+.shiftlink {
+	margin-left: 10px;
+}
+
+#clearfix {
+	clear: both;
+}
+
+#doc {
+	padding-right: 14em;
+}
+
+a {
+	color: #8080f0;
+}
+
+a:visited {
+	color: #a0a0a0;
+}
+
+#toc {
+	float: right;
+	width: 13em;
+	padding: 5px;
+	background-color: #f0f0f0;
+	margin-top: 20px;
+}

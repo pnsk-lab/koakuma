@@ -9,6 +9,15 @@ DocumentRoot @@PREFIX@@/lib/koakuma/htdocs
 	Options +ExecCGI
 	Require all granted
 </Directory>
+<Location /koakuma/rpc>
+	AuthType basic
+	AuthName "Koakuma RPC"
+	AuthUserFile @@PREFIX@@/etc/koakuma/passwd
+	Require valid-user
+</Location>
+<Location /koakuma/rpc/prefix>
+	Require all granted
+</Location>
 ScriptAlias /koakuma @@PREFIX@@/lib/koakuma/cgi-bin/koakuma.cgi
 
 RewriteEngine on

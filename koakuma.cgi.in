@@ -8,11 +8,18 @@ proc exiting {code} {
 	exit $code
 }
 
+proc loop_components {run} {
+	global components
+	foreach {name description version} $components {
+		eval $run
+	}
+}
+
 proc crash {reason} {
 	global components KOAKUMA_VERSION
 	puts stderr "----- Start Koakuma Crash dump log -----"
 	puts stderr "Included components:"
-	foreach {name description version} $components {
+	loop_components {
 		puts stderr "	$name: $description, version $version"
 	}
 	puts stderr "Reason: $reason"
@@ -36,20 +43,256 @@ proc crash {reason} {
 	exiting 1
 }
 
-foreach path [glob @@PREFIX@@/lib/koakuma/components/*.tcl] {
-	source "$path"
+if { ![info exists env(PATH_INFO)] } {
+	puts "Status: 301 Moved Permanently"
+	puts "Location: $env(SCRIPT_NAME)/"
+	puts ""
+	exiting 0
 }
 
-proc start_html {title} {
-	puts	"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">"
-	puts	"<html>"
-	puts	"	<head>"
-	puts	"		<meta http-equiv=\"Content-Type\" content=\"text/html;charset=UTF-8\">"
-	puts	"		<title>$title - Koakuma</title>"
-	puts	"	</head>"
-	puts	"	<body>"
+if { [catch {
+	package require tdom
+}] } {
+	crash "Failed to load tDOM"
 }
-proc end_html {} {
-	puts	"	</body>"
-	puts	"</html>"
+
+if { [catch {
+	foreach path [glob @@PREFIX@@/lib/koakuma/component/*.tcl] {
+		source "$path"
+	}
+}] } {
+	crash "Could not load components"
 }
+
+set toc ""
+set result ""
+set content ""
+
+proc rputs {data} {
+	global result
+	if { "$result" == "" } {
+		set result "$data"
+	} else {
+		set result "$result\n$data"
+	}
+}
+
+proc tputs {data} {
+	global content
+	if { "$content" == "" } {
+		set content "$data"
+	} else {
+		set content "$content\n$data"
+	}
+}
+
+proc html_escape {data} {
+	return "[regsub -all {&} "[regsub -all {>} "[regsub -all {<} "$data" "&lt;"]" "&gt;"]" "&amp;"]"
+}
+
+proc open_projects {} {
+	while 1 {
+		if { ![info exists "@@PREFIX@@/lib/koakuma/db/projects.lock"] } {
+			break
+		}
+		set fid [open "@@PREFIX@@/lib/koakuma/db/projects.lock" "w"]
+		if { ![info exists "/proc/[gets $fid line]"] } {
+			close $fid
+			break
+		}
+		after 10
+		close $fid
+	}
+	set fid [open "@@PREFIX@@/lib/koakuma/db/projects.lock" "w"]
+	puts $fid "[pid]"
+	close $fid
+}
+
+proc scan_projects {run} {
+	set fid [open "@@PREFIX@@/lib/koakuma/db/projects.db" "r"]
+	set content ""
+	while { [gets $fid line] >= 0 } {
+		if { "$content" == "" } {
+			set content "$line"
+		} else {
+			set content "$content\n$line"
+		}
+	}
+	close $fid
+	set dom [dom parse "$content"]
+	set doc [$dom documentElement]
+	foreach elem [$doc selectNodes "/projects/project"] {
+		set name "[$elem selectNodes "string(name)"]"
+		set description "[$elem selectNodes "string(description)"]"
+		eval $run
+	}
+}
+
+proc project_exists {projname} {
+	set desc ""
+	scan_projects {
+		upvar 1 desc desc
+		upvar 1 projname projname
+		if { "$name" == "$projname" } {
+			set desc "$description"
+			break
+		}
+	}
+	return "$desc"
+}
+
+proc close_projects {} {
+	file delete "@@PREFIX@@/lib/koakuma/db/projects.lock"
+}
+
+proc start_html {title has_toc} {
+	global toc
+	rputs	"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">"
+	rputs	"<html>"
+	rputs	"	<head>"
+	rputs	"		<meta http-equiv=\"Content-Type\" content=\"text/html;charset=UTF-8\">"
+	rputs	"		<title>$title - Koakuma</title>"
+	rputs	"		<link rel=\"stylesheet\" href=\"/static/style.css\">"
+	rputs	"	</head>"
+	rputs	"	<body>"
+	rputs	"		<a href=\"/koakuma\" id=\"gomain\">"
+	rputs	"			<img src=\"/static/koakuma.png\" alt=\"Koakuma by Kasuya Baian\" height=\"192px\">"
+	rputs	"		</a>"
+	rputs	"		<div id=\"space\"></div>"
+	rputs	"		<div id=\"title\">"
+	rputs	"			Koakuma"
+	rputs	"		</div>"
+	rputs	"		<div id=\"clearfix\"></div>"
+	if { "$has_toc" == "1" } {
+		rputs	"		<div id=\"toc\">"
+		rputs	"			<div id=\"toctitle\">TOC</div>"
+		foreach sect $toc {
+			if { "[string range "[regsub -all { } "$sect" "-"]" 0 0]" == "-" } {
+				rputs "<a class=\"shiftlink\" href=\"#TOC-[regsub {^-} "[regsub -all { } "$sect" "-"]" ""]\">[regsub {^-} "$sect" ""]</a><br>"
+			} else {
+				rputs "<a href=\"#TOC-[regsub -all { } "$sect" "-"]\">$sect</a><br>"
+			}
+		}
+		rputs	"		</div>"
+	}
+	if { "$has_toc" == "1" } {
+		rputs	"		<div id=\"doc\">"
+	} else {
+		rputs	"		<div id=\"doc-notoc\">"
+	}
+	rputs	"			<h1>$title</h1>"
+}
+proc end_html {has_toc} {
+	global KOAKUMA_VERSION
+	rputs	"		</div>"
+	rputs	"		<hr>"
+	rputs	"		<i>Powered by <a href=\"http://nishi.boats/koakuma\">Koakuma</a> $KOAKUMA_VERSION</i>"
+	rputs	"	</body>"
+	rputs	"</html>"
+}
+
+proc add_toc {data} {
+	global toc
+	tputs	"<h2 id=\"TOC-[regsub -all { } "$data" "-"]\"><a href=\"#TOC-[regsub -all { } "$data" "-"]\">#</a> $data</h2>"
+	lappend toc "$data"
+}
+
+proc add_toc2 {data} {
+	global toc
+	tputs	"<h3 id=\"TOC-[regsub -all { } "$data" "-"]\"><a href=\"#TOC-[regsub -all { } "$data" "-"]\">#</a> $data</h3>"
+	lappend toc "-$data"
+}
+
+if { [catch {
+	set path "[regsub -all {/+} "$env(PATH_INFO)" "/"]"
+	rputs "Content-Type: text/html"
+	if { "$path" == "/" } {
+		add_toc "Tcl Information"
+		tputs	"<table border=\"0\">"
+		tputs	"	<tr>"
+		tputs	"		<th>"
+		tputs	"			Version"
+		tputs	"		</th>"
+		tputs	"		<td>"
+		tputs	"			$tcl_version"
+		tputs	"		</td>"
+		tputs	"	</tr>"
+		tputs	"	<tr>"
+		tputs	"		<th>"
+		tputs	"			Platform"
+		tputs	"		</th>"
+		tputs	"		<td>"
+		tputs	"			$tcl_platform(os)/$tcl_platform(machine) $tcl_platform(osVersion)"
+		tputs	"		</td>"
+		tputs	"	</tr>"
+		tputs	"</table>"
+		add_toc "Components"
+		loop_components {
+			if { [llength [info procs "${name}_info"]] > 0 } {
+				${name}_info
+			}
+		}
+		set has_projects 0
+		add_toc "Projects"
+		open_projects
+		scan_projects {
+			upvar 1 has_projects has_projects
+			if { "$has_projects" == "0" } {
+				set has_projects 1
+				tputs	"<table border=\"0\">"
+			}
+			tputs	"<tr>"
+			tputs	"	<th><a href=\"/koakuma/project/$name\">$name</a></th>"
+			tputs	"	<td>$description</td>"
+			tputs	"</tr>"
+		}
+		close_projects
+		if { "$has_projects" == "1" } {
+			tputs	"</table>"
+		} else {
+			tputs	"No projects have been added, yet."
+		}
+
+		rputs ""
+		start_html "Main" 1
+		rputs "$content"
+		end_html 1
+	} elseif { [regexp {^/rpc.*$} "$path"] } {
+	} elseif { [regexp {^/project/[^/]+.*$} "$path"] } {
+		regexp {^/project/([^/]+).*$} "$path" -> projname
+		open_projects
+		set has_project [project_exists "$projname"]
+		close_projects
+		
+		if { "$has_project" != "" } {
+			add_toc "Description"
+			tputs "[html_escape "$has_project"]"
+
+			rputs ""
+			start_html "Project: $projname" 1
+			rputs "$content"
+			end_html 1
+		} else {
+			tputs "I could not find the project you were finding."
+
+			rputs "Status: 404 Not Found"
+			rputs ""
+			start_html "Not Found" 0
+			rputs "$content"
+			end_html 0
+		}
+	} else {
+		tputs "I could not find the content you were finding."
+
+		rputs "Status: 404 Not Found"
+		rputs ""
+		start_html "Not Found" 0
+		rputs "$content"
+		end_html 0
+	}
+}] } {
+	crash "Could not render the HTML"
+} else {
+	puts "$result"
+}
+exiting 0

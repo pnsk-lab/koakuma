@@ -5,17 +5,26 @@ REPLACE = sed "s%@@PREFIX@@%$(PREFIX)%g"
 
 .PHONY: install
 
-install: Components/* Tool/* koakuma.cgi.in
-	mkdir -p $(PREFIX)/lib/koakuma/components/
+install: Component/* Tool/* Utility/* koakuma.cgi.in apache.conf.in
+	mkdir -p $(PREFIX)/lib/koakuma/component/
+	mkdir -p $(PREFIX)/lib/koakuma/utility/
 	mkdir -p $(PREFIX)/lib/koakuma/htdocs/static/
 	mkdir -p $(PREFIX)/etc/koakuma/
 	mkdir -p $(PREFIX)/lib/koakuma/cgi-bin/
 	mkdir -p $(PREFIX)/bin/
-	cp -rf Components/* $(PREFIX)/lib/koakuma/components/
+	mkdir -p $(PREFIX)/lib/koakuma/db
+	if [ ! -e "$(PREFIX)/lib/koakuma/db/projects.db" ] ; then echo "<projects></projects>" > $(PREFIX)/lib/koakuma/db/projects.db ; fi
+	cp -rf Component/* $(PREFIX)/lib/koakuma/component/
+	cp -rf Utility/* $(PREFIX)/lib/koakuma/utility/
 	cp -rf Tool/* $(PREFIX)/bin/
 	cp -rf koakuma.png $(PREFIX)/lib/koakuma/htdocs/static/
+	cp style.css $(PREFIX)/lib/koakuma/htdocs/static/
 	$(REPLACE) koakuma.cgi.in > $(PREFIX)/lib/koakuma/cgi-bin/koakuma.cgi
 	$(REPLACE) apache.conf.in > $(PREFIX)/etc/koakuma/apache.conf
 	chmod +x $(PREFIX)/lib/koakuma/cgi-bin/koakuma.cgi
 	chmod +x $(PREFIX)/bin/create-task
 	chmod +x $(PREFIX)/bin/launch-job
+	@echo
+	@echo Make sure $(PREFIX)/lib/koakuma/db is writable by your HTTPd user.
+	@echo By default, Koakuma stock Apache config uses $(PREFIX)/etc/koakuma/passwd
+	@echo for authentication.

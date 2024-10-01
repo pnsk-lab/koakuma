@@ -1,2 +1,5 @@
 Koakuma is a simple autobuild script.
-Requires Tcl8.6, and Tcllib.
+Requires:
+ - Tcl8.6
+ - Tcllib
+ - tDOM: https://wiki.tcl-lang.org/page/tDOM
