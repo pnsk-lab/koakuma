@@ -1,0 +1,55 @@
+#!/usr/bin/env tclsh
+# $Id$
+
+set KOAKUMA_VERSION "1.00"
+set components ""
+
+proc exiting {code} {
+	exit $code
+}
+
+proc crash {reason} {
+	global components KOAKUMA_VERSION
+	puts stderr "----- Start Koakuma Crash dump log -----"
+	puts stderr "Included components:"
+	foreach {name description version} $components {
+		puts stderr "	$name: $description, version $version"
+	}
+	puts stderr "Reason: $reason"
+	puts stderr "----- End Koakuma Crash dump log -----"
+	puts	"Content-Type: text/html"
+	puts	"Status: 500 Internal Server Error"
+	puts	""
+	puts	"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2 Final//EN\">"
+	puts	"<html>"
+	puts	"	<head>"
+	puts	"		<meta http-equiv=\"Content-Type\" content=\"text/html;charset=UTF-8\">"
+	puts	"		<title>Oops</title>"
+	puts	"	</head>"
+	puts	"	<body>"
+	puts	"		<h1>Oops</h1>"
+	puts	"		<hr>"
+	puts	"		Koakuma version $KOAKUMA_VERSION crashed, reason: <code>$reason</code><br>"
+	puts	"		See the server error log for details."
+	puts	"	</body>"
+	puts	"</html>"
+	exiting 1
+}
+
+foreach path [glob @@PREFIX@@/lib/koakuma/components/*.tcl] {
+	source "$path"
+}
+
+proc start_html {title} {
+	puts	"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">"
+	puts	"<html>"
+	puts	"	<head>"
+	puts	"		<meta http-equiv=\"Content-Type\" content=\"text/html;charset=UTF-8\">"
+	puts	"		<title>$title - Koakuma</title>"
+	puts	"	</head>"
+	puts	"	<body>"
+}
+proc end_html {} {
+	puts	"	</body>"
+	puts	"</html>"
+}

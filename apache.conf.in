@@ -1,0 +1,15 @@
+# $Id$
+# vim: syntax=apache
+
+DocumentRoot @@PREFIX@@/lib/koakuma/htdocs
+<Directory @@PREFIX@@/lib/koakuma/htdocs>
+	Require all granted
+</Directory>
+<Directory @@PREFIX@@/lib/koakuma/cgi-bin>
+	Options +ExecCGI
+	Require all granted
+</Directory>
+ScriptAlias /koakuma @@PREFIX@@/lib/koakuma/cgi-bin/koakuma.cgi
+
+RewriteEngine on
+RewriteRule ^/$ /koakuma [END,NE,R=permanent]
