@@ -28,4 +28,4 @@ install: Component/* Tool/* Utility/* koakuma.cgi.in apache.conf.in
 	@echo
 	@echo Make sure $(PREFIX)/lib/koakuma/db is writable by your HTTPd user.
 	@echo By default, Koakuma stock Apache config uses $(PREFIX)/etc/koakuma/passwd
-	@echo for authentication.
+	@echo for RPC authentication.
