@@ -3,3 +3,4 @@ Requires:
  - Tcl8.6
  - Tcllib
  - tDOM: https://wiki.tcl-lang.org/page/tDOM
+ - tcl-tls if you want HTTPs for RPC.
