@@ -1,5 +1,6 @@
 #!/usr/bin/env tclsh
 # $Id$
+package require tdom
 set RPC_URL "http://127.0.0.1/koakuma/rpc"
 foreach arg $argv {
 	if { [string range "$arg" 0 0] == "-" } {
@@ -17,6 +18,7 @@ foreach path [glob "@@PREFIX@@/lib/koakuma/utility/*.tcl"] {
 if { [info exists "env(KOAKUMA_RPC)"] } {
 	set RPC_URL "$env(KOAKUMA_RPC)"
 }
+set RPC_URL "[regsub {/+$} "$RPC_URL" ""]"
 puts -nonewline "Authentication: "
 set status [::rpc::require-auth]
 if { $status == 1 } {
@@ -31,4 +33,37 @@ if { $status == 1 } {
 } else {
 	puts "Not required"
 }
-::rpc::send
+
+dom createNodeCmd -tagName "name" -jsonType NONE elementNode keyName
+dom createNodeCmd -tagName "description" -jsonType NONE elementNode keyDescription
+dom createNodeCmd -tagName "vcs" -jsonType NONE elementNode keyVCS
+dom createNodeCmd -tagName "url" -jsonType NONE elementNode keyURL
+
+dom createNodeCmd -jsonType STRING textNode valueString
+
+set doc [dom createDocumentNode]
+
+proc ask_for {show var} {
+	upvar 1 $var $var
+	puts -nonewline "$show: "
+	flush stdout
+	set $var "[gets stdin]"
+}
+
+ask_for "Name" name
+ask_for "Description" description
+ask_for "VCS" vcs
+ask_for "VCS URL" url
+
+$doc appendFromScript {
+	keyName {valueString "$name"}
+	keyDescription {valueString "$description"}
+	keyVCS {valueString "$vcs"}
+	keyURL {valueString "$url"}
+}
+set result [::rpc::send "/create-project" "[$doc asJSON]"]
+if { [lindex $result 0] == 200 } {
+} else {
+	set doc [dom parse -json "[lindex $result 1]"]
+	puts "Error: [$doc selectNodes "string(/error)"]"
+}

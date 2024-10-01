@@ -54,6 +54,7 @@ if { [catch {
 	package require tdom
 	dom createNodeCmd -tagName "rpc" elementNode rootXML
 	dom createNodeCmd -tagName "version" -jsonType NONE elementNode keyVersion
+	dom createNodeCmd -tagName "error" -jsonType NONE elementNode keyError
 	dom createNodeCmd -jsonType STRING textNode valueString
 }] } {
 	crash "Failed to load tDOM"
@@ -65,6 +66,16 @@ if { [catch {
 	}
 }] } {
 	crash "Could not load components"
+}
+
+set data ""
+
+while { [gets stdin line] >= 0 } {
+	if { "$data" == "" } {
+		set data "$line"
+	} else {
+		set data "$data\n$line"
+	}
 }
 
 set toc ""
@@ -265,14 +276,59 @@ if { [catch {
 		rputs "$content"
 		end_html 1
 	} elseif { [regexp {^/rpc(/.*)?$} "$path"] } {
-		rputs ""
 		regexp {^/rpc(/.*)?$} "$path" -> api
 		set doc [dom createDocumentNode]
-		set root $doc
+		$doc appendFromScript {
+			keyVersion {valueString "$KOAKUMA_VERSION"}
+		}
 		if { "$api" == "" || "$api" == "/" } {
-			$root appendFromScript {
-				keyVersion {valueString "$KOAKUMA_VERSION"}
+			rputs ""
+			rputs "[$doc asJSON]"
+		} elseif { "$api" == "/create-project" } {
+			if { [catch {dom parse -json "$data" clidoc}] } {
+				rputs "Status: 400 Bad Request"
+				$doc appendFromScript {
+					keyError {valueString "Bad JSON"}
+				}
+			} else {
+				set projname "[$clidoc selectNodes "string(/name)"]"
+				set projdescription "[$clidoc selectNodes "string(/description)"]"
+				set vcs "[$clidoc selectNodes "string(/vcs)"]"
+				set url "[$clidoc selectNodes "string(/url)"]"
+				if { "$projname" == "" || "$projdescription" == "" || "$vcs" == "" || "$url" == "" } {
+					rputs "Status: 400 Bad Request"
+					$doc appendFromScript {
+						keyError {valueString "Required field missing"}
+					}
+				} else {
+					set has_vcs 0
+					loop_components {
+						upvar 1 has_vcs has_vcs
+						upvar 1 vcs vcs
+						if { "$name" == "$vcs" } {
+							set has_vcs 1
+							break
+						}
+					}
+					if { $has_vcs == 0 } {
+						rputs "Status: 400 Bad Request"
+						$doc appendFromScript {
+							keyError {valueString "Not a valid VCS"}
+						}
+					} else {
+						open_projects
+						close_projects
+					}
+				}
 			}
+			rputs ""
+			rputs "[$doc asJSON]"
+		} else {
+			$root appendFromScript {
+				keyError {valueString "No such endpoint"}
+			}
+			rputs "Status: 404 Not Found"
+			rputs ""
 			rputs "[$doc asJSON]"
 		}
 	} elseif { [regexp {^/project/[^/]+.*$} "$path"] } {
