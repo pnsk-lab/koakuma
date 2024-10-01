@@ -6,6 +6,7 @@ package require term::ansi::ctrl::unix
 catch {
 	package require tls
 	::http::register https 443 ::tls::socket
+	puts "HTTPs is usable."
 }
 
 set RPC_URL "http://127.0.0.1/koakuma/rpc"
