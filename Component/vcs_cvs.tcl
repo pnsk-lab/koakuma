@@ -1,5 +1,5 @@
 # $Id$
-lappend components "CVS" "CVS Integration" "1.00"
+lappend components "CVS" "CVS Integration" "1.00" "VCS"
 
 proc CVS_info {} {
 	regexp {[0-9]+\.[0-9]+\.[0-9]+} "[exec cvs --version]" version

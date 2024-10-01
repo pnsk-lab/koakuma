@@ -1,5 +1,5 @@
 # $Id$
-lappend components "Subversion" "Subversion Integration" "1.00"
+lappend components "Subversion" "Subversion Integration" "1.00" "VCS"
 
 proc Subversion_info {} {
 	regexp {[0-9]+\.[0-9]+\.[0-9]+} "[exec svn --version]" version

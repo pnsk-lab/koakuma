@@ -10,7 +10,7 @@ proc exiting {code} {
 
 proc loop_components {run} {
 	global components
-	foreach {name description version} $components {
+	foreach {name description version genre} $components {
 		eval $run
 	}
 }
@@ -53,8 +53,13 @@ if { ![info exists env(PATH_INFO)] } {
 if { [catch {
 	package require tdom
 	dom createNodeCmd -tagName "rpc" elementNode rootXML
+	dom createNodeCmd -tagName "project" elementNode keyProject
 	dom createNodeCmd -tagName "version" -jsonType NONE elementNode keyVersion
 	dom createNodeCmd -tagName "error" -jsonType NONE elementNode keyError
+	dom createNodeCmd -tagName "name" -jsonType NONE elementNode keyName
+	dom createNodeCmd -tagName "description" -jsonType NONE elementNode keyDescription
+	dom createNodeCmd -tagName "vcs" -jsonType NONE elementNode keyVCS
+	dom createNodeCmd -tagName "url" -jsonType NONE elementNode keyURL
 	dom createNodeCmd -jsonType STRING textNode valueString
 }] } {
 	crash "Failed to load tDOM"
@@ -81,6 +86,26 @@ while { [gets stdin line] >= 0 } {
 set toc ""
 set result ""
 set content ""
+
+proc write_db {data} {
+	set fid [open "@@PREFIX@@/lib/koakuma/db/projects.db" "w"]
+	puts $fid "$data"
+	close $fid
+}
+
+proc readall_db {} {
+	set data ""
+	set fid [open "@@PREFIX@@/lib/koakuma/db/projects.db" "r"]
+	while { [gets $fid line] >= 0 } {
+		if { "$data" == "" } {
+			set data "$line"
+		} else {
+			set data "$data\n$line"
+		}
+	}
+	close $fid
+	return "$data"
+}
 
 proc rputs {data} {
 	global result
@@ -293,30 +318,58 @@ if { [catch {
 			} else {
 				set projname "[$clidoc selectNodes "string(/name)"]"
 				set projdescription "[$clidoc selectNodes "string(/description)"]"
-				set vcs "[$clidoc selectNodes "string(/vcs)"]"
+				set projvcs "[$clidoc selectNodes "string(/vcs)"]"
 				set url "[$clidoc selectNodes "string(/url)"]"
-				if { "$projname" == "" || "$projdescription" == "" || "$vcs" == "" || "$url" == "" } {
+				if { "$projname" == "" || "$projdescription" == "" || "$projvcs" == "" || "$url" == "" } {
 					rputs "Status: 400 Bad Request"
 					$doc appendFromScript {
 						keyError {valueString "Required field missing"}
 					}
 				} else {
 					set has_vcs 0
+					set has_name 0
 					loop_components {
 						upvar 1 has_vcs has_vcs
-						upvar 1 vcs vcs
-						if { "$name" == "$vcs" } {
+						upvar 1 projvcs projvcs
+						if { "$name" == "$projvcs" && "$genre" == "VCS" } {
 							set has_vcs 1
 							break
 						}
 					}
+					open_projects
+					scan_projects {
+						upvar 1 has_name has_name
+						upvar 1 projname projname
+						if { "$name" == "$projname" } {
+							set has_name 1
+							break
+						}
+					}
+					close_projects
 					if { $has_vcs == 0 } {
 						rputs "Status: 400 Bad Request"
 						$doc appendFromScript {
 							keyError {valueString "Not a valid VCS"}
 						}
+					} elseif { $has_name == 1 } {
+						rputs "Status: 400 Bad Request"
+						$doc appendFromScript {
+							keyError {valueString "Project already exists"}
+						}
 					} else {
 						open_projects
+						set xml "[readall_db]"
+						set xmldoc [dom parse "$xml"]
+						set root [$xmldoc documentElement]
+						$root appendFromScript {
+							keyProject {
+								keyName {valueString "$projname"}
+								keyDescription {valueString "$projdescription"}
+								keyVCS {valueString "$projvcs"}
+								keyURL {valueString "$url"}
+							}
+						}
+						write_db "[$xmldoc asXML]"
 						close_projects
 					}
 				}
