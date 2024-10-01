@@ -1,7 +1,6 @@
 #!/usr/bin/env tclsh
 # $Id$
 package require tdom
-set RPC_URL "http://127.0.0.1/koakuma/rpc"
 foreach arg $argv {
 	if { [string range "$arg" 0 0] == "-" } {
 		if { "$arg" == "-h" || "$arg" == "--help" } {
@@ -15,10 +14,6 @@ foreach arg $argv {
 foreach path [glob "@@PREFIX@@/lib/koakuma/utility/*.tcl"] {
 	source $path
 }
-if { [info exists "env(KOAKUMA_RPC)"] } {
-	set RPC_URL "$env(KOAKUMA_RPC)"
-}
-set RPC_URL "[regsub {/+$} "$RPC_URL" ""]"
 puts -nonewline "Authentication: "
 set status [::rpc::require-auth]
 if { $status == 1 } {

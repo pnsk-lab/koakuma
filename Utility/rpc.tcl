@@ -3,6 +3,17 @@ package require http
 package require base64
 package require term::ansi::ctrl::unix
 
+catch {
+	package require tls
+	::http::register https 443 ::tls::socket
+}
+
+set RPC_URL "http://127.0.0.1/koakuma/rpc"
+if { [info exists "env(KOAKUMA_RPC)"] } {
+	set RPC_URL "$env(KOAKUMA_RPC)"
+}
+set RPC_URL "[regsub {/+$} "$RPC_URL" ""]"
+
 namespace eval rpc {
 	proc require-auth {} {
 		global RPC_URL
