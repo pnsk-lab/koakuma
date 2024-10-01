@@ -16,13 +16,14 @@ install: Component/* Tool/* Utility/* koakuma.cgi.in apache.conf.in
 	if [ ! -e "$(PREFIX)/lib/koakuma/db/projects.db" ] ; then echo "<projects></projects>" > $(PREFIX)/lib/koakuma/db/projects.db ; fi
 	cp -rf Component/* $(PREFIX)/lib/koakuma/component/
 	cp -rf Utility/* $(PREFIX)/lib/koakuma/utility/
-	cp -rf Tool/* $(PREFIX)/bin/
+	$(REPLACE) Tool/create-project.in > $(PREFIX)/bin/create-project
+	$(REPLACE) Tool/launch-job.in > $(PREFIX)/bin/launch-job
 	cp -rf koakuma.png $(PREFIX)/lib/koakuma/htdocs/static/
 	cp style.css $(PREFIX)/lib/koakuma/htdocs/static/
 	$(REPLACE) koakuma.cgi.in > $(PREFIX)/lib/koakuma/cgi-bin/koakuma.cgi
 	$(REPLACE) apache.conf.in > $(PREFIX)/etc/koakuma/apache.conf
 	chmod +x $(PREFIX)/lib/koakuma/cgi-bin/koakuma.cgi
-	chmod +x $(PREFIX)/bin/create-task
+	chmod +x $(PREFIX)/bin/create-project
 	chmod +x $(PREFIX)/bin/launch-job
 	@echo
 	@echo Make sure $(PREFIX)/lib/koakuma/db is writable by your HTTPd user.

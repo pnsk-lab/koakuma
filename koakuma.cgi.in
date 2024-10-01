@@ -52,6 +52,9 @@ if { ![info exists env(PATH_INFO)] } {
 
 if { [catch {
 	package require tdom
+	dom createNodeCmd -tagName "rpc" elementNode rootXML
+	dom createNodeCmd -tagName "version" -jsonType NONE elementNode keyVersion
+	dom createNodeCmd -jsonType STRING textNode valueString
 }] } {
 	crash "Failed to load tDOM"
 }
@@ -205,7 +208,11 @@ proc add_toc2 {data} {
 
 if { [catch {
 	set path "[regsub -all {/+} "$env(PATH_INFO)" "/"]"
-	rputs "Content-Type: text/html"
+	if { [regexp {^/rpc(/.*)?$} "$path"] } {
+		rputs "Content-Type: application/json"
+	} else {
+		rputs "Content-Type: text/html"
+	}
 	if { "$path" == "/" } {
 		add_toc "Tcl Information"
 		tputs	"<table border=\"0\">"
@@ -257,7 +264,17 @@ if { [catch {
 		start_html "Main" 1
 		rputs "$content"
 		end_html 1
-	} elseif { [regexp {^/rpc.*$} "$path"] } {
+	} elseif { [regexp {^/rpc(/.*)?$} "$path"] } {
+		rputs ""
+		regexp {^/rpc(/.*)?$} "$path" -> api
+		set doc [dom createDocumentNode]
+		set root $doc
+		if { "$api" == "" || "$api" == "/" } {
+			$root appendFromScript {
+				keyVersion {valueString "$KOAKUMA_VERSION"}
+			}
+			rputs "[$doc asJSON]"
+		}
 	} elseif { [regexp {^/project/[^/]+.*$} "$path"] } {
 		regexp {^/project/([^/]+).*$} "$path" -> projname
 		open_projects

@@ -1,0 +1,34 @@
+#!/usr/bin/env tclsh
+# $Id$
+set RPC_URL "http://127.0.0.1/koakuma/rpc"
+foreach arg $argv {
+	if { [string range "$arg" 0 0] == "-" } {
+		if { "$arg" == "-h" || "$arg" == "--help" } {
+			puts "Usage: create-project"
+			puts "You can set the environment variable `KOAKUMA_RPC' to override default RPC URL."
+			puts "Default: $RPC_URL"	
+			exit 0
+		}
+	}
+}
+foreach path [glob "@@PREFIX@@/lib/koakuma/utility/*.tcl"] {
+	source $path
+}
+if { [info exists "env(KOAKUMA_RPC)"] } {
+	set RPC_URL "$env(KOAKUMA_RPC)"
+}
+puts -nonewline "Authentication: "
+set status [::rpc::require-auth]
+if { $status == 1 } {
+	puts "Required"
+	if { ![::rpc::ask-auth] } {
+		puts "Authentication failure"
+		exit 1
+	}
+} elseif { $status < 0 } {
+	puts "Got forbidden, cannot continue"
+	exit 1
+} else {
+	puts "Not required"
+}
+::rpc::send
