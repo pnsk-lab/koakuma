@@ -1,18 +1,18 @@
 #!/usr/bin/env tclsh
 # $Id$
 package require tdom
+foreach path [glob "@@PREFIX@@/lib/koakuma/utility/*.tcl"] {
+	source $path
+}
 foreach arg $argv {
 	if { [string range "$arg" 0 0] == "-" } {
 		if { "$arg" == "-h" || "$arg" == "--help" } {
-			puts "Usage: create-project"
+			puts "Usage: $argv0"
 			puts "You can set the environment variable `KOAKUMA_RPC' to override default RPC URL."
-			puts "Default: $RPC_URL"	
+			puts "Default: http://127.0.0.1/koakuma/rpc"
 			exit 0
 		}
 	}
-}
-foreach path [glob "@@PREFIX@@/lib/koakuma/utility/*.tcl"] {
-	source $path
 }
 
 ::rpc::init

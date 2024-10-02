@@ -5,7 +5,7 @@ REPLACE = sed "s%@@PREFIX@@%$(PREFIX)%g"
 
 .PHONY: install
 
-install: Component/* Tool/* Utility/* koakuma.cgi.in apache.conf.in
+install: Component/* Tool/* Utility/* Static/* koakuma.cgi.in apache.conf.in
 	mkdir -p $(PREFIX)/lib/koakuma/component/
 	mkdir -p $(PREFIX)/lib/koakuma/utility/
 	mkdir -p $(PREFIX)/lib/koakuma/htdocs/static/
@@ -19,8 +19,7 @@ install: Component/* Tool/* Utility/* koakuma.cgi.in apache.conf.in
 	cp -rf Utility/* $(PREFIX)/lib/koakuma/utility/
 	$(REPLACE) Tool/create-project.in > $(PREFIX)/bin/create-project
 	$(REPLACE) Tool/launch-job.in > $(PREFIX)/bin/launch-job
-	cp -rf koakuma.png $(PREFIX)/lib/koakuma/htdocs/static/
-	cp style.css $(PREFIX)/lib/koakuma/htdocs/static/
+	cp -rf Static/* $(PREFIX)/lib/koakuma/htdocs/static/
 	$(REPLACE) koakuma.cgi.in > $(PREFIX)/lib/koakuma/cgi-bin/koakuma.cgi
 	$(REPLACE) apache.conf.in > $(PREFIX)/etc/koakuma/apache.conf
 	chmod +x $(PREFIX)/lib/koakuma/cgi-bin/koakuma.cgi

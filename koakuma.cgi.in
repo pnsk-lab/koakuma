@@ -185,7 +185,7 @@ proc close_projects {} {
 }
 
 proc start_html {title has_toc} {
-	global toc
+	global toc env
 	rputs	"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">"
 	rputs	"<html>"
 	rputs	"	<head>"
@@ -201,6 +201,7 @@ proc start_html {title has_toc} {
 	rputs	"		<div id=\"title\">"
 	rputs	"			Koakuma"
 	rputs	"		</div>"
+	rputs	"		<a href=\"$env(SCRIPT_NAME)\">Root</a>"
 	rputs	"		<div id=\"clearfix\"></div>"
 	if { "$has_toc" == "1" } {
 		rputs	"		<div id=\"toc\">"
@@ -247,6 +248,12 @@ if { [catch {
 	if { [regexp {^/rpc(/.*)?$} "$path"] } {
 		rputs "Content-Type: application/json"
 	} else {
+		if { ![regexp {/$} "$env(PATH_INFO)"] } {
+			puts "Status: 301 Moved Permanently"
+			puts "Location: $env(SCRIPT_NAME)$env(PATH_INFO)/"
+			puts ""
+			exiting 0
+		}
 		rputs "Content-Type: text/html"
 	}
 	if { "$path" == "/" } {
@@ -307,6 +314,43 @@ if { [catch {
 			keyVersion {valueString "$KOAKUMA_VERSION"}
 		}
 		if { "$api" == "" || "$api" == "/" } {
+			rputs ""
+			rputs "[$doc asJSON]"
+		} elseif { "$api" == "/launch-job" } {
+			if { [catch {dom parse -json "$data" clidoc}] } {
+				rputs "Status: 400 Bad Request"
+				$doc appendFromScript {
+					keyError {valueString "Bad JSON"}
+				}
+			} else {
+				set projname "[$clidoc selectNodes "string(/name)"]"
+				set builddesc "[$clidoc selectNodes "string(/description)"]"
+				if { "$projname" == "" || "$builddesc" == "" } {
+					rputs "Status: 400 Bad Request"
+					$doc appendFromScript {
+						keyError {valueString "Required field missing"}
+					}
+				} else {
+					set has_name 0
+					open_projects
+					scan_projects {
+						upvar 1 has_name has_name
+						upvar 1 projname projname
+						if { "$name" == "$projname" } {
+							set has_name 1
+							break
+						}
+					}
+					close_projects
+					if { $has_name == 0 } {
+						rputs "Status: 400 Bad Request"
+						$doc appendFromScript {
+							keyError {valueString "Project does not exist"}
+						}
+					} else {
+					}
+				}
+			}
 			rputs ""
 			rputs "[$doc asJSON]"
 		} elseif { "$api" == "/create-project" } {
@@ -386,34 +430,65 @@ if { [catch {
 			rputs "[$doc asJSON]"
 		}
 	} elseif { [regexp {^/project/[^/]+.*$} "$path"] } {
-		regexp {^/project/([^/]+).*$} "$path" -> projname
+		regexp {^/project/([^/]+)(.*)$} "$path" -> projname projpath
 		open_projects
 		set has_project [project_exists "$projname"]
 		close_projects
 		
 		if { "$has_project" != "" } {
-			add_toc "Description"
-			tputs "[html_escape "$has_project"]"
-			add_toc "Details"
-			tputs	"<table border=\"0\">"
-			tputs	"	<tr>"
-			tputs	"		<th>"
-			tputs	"			Last run"
-			tputs	"		</th>"
-			tputs	"		<td>"
-			if { [file exists "@@PREFIX@@/lib/koakuma/db/data/$projname/lastrun"] } {
+			if { "$projpath" == "" || "$projpath" == "/" } {
+				add_toc "Description"
+				tputs "[html_escape "$has_project"]"
+				add_toc "Details"
+				tputs	"<table border=\"0\">"
+				tputs	"	<tr>"
+				tputs	"		<th>"
+				tputs	"			Last run"
+				tputs	"		</th>"
+				tputs	"		<td>"
+				if { [file exists "@@PREFIX@@/lib/koakuma/db/data/$projname/lastrun"] } {
+					set fid [open "@@PREFIX@@/lib/koakuma/db/data/$projname/lastrun" "r"]
+					set date "[clock format "[gets $fid]" -format "%a %b %d %H:%M:%S %Z %Y"]"
+					close $fid
+					tputs "$date"
+				} else {
+					tputs "No builds yet"
+				}
+				tputs	"			"
+				tputs	"		</td>"
+				tputs	"	</tr>"
+				tputs	"	<tr>"
+				tputs	"		<th>"
+				tputs	"			Last successful run"
+				tputs	"		</th>"
+				tputs	"		<td>"
+				if { [file exists "@@PREFIX@@/lib/koakuma/db/data/$projname/lastsuccessfulrun"] } {
+					set fid [open "@@PREFIX@@/lib/koakuma/db/data/$projname/lastsuccessfulrun" "r"]
+					set date "[clock format "[gets $fid]" -format "%a %b %d %H:%M:%S %Z %Y"]"
+					close $fid
+					tputs "$date"
+				} else {
+					tputs "No successful builds yet"
+				}
+				tputs	"			"
+				tputs	"		</td>"
+				tputs	"	</tr>"
+				tputs	"</table>"
+				add_toc "Build details"
+	
+				rputs ""
+				start_html "Project: $projname" 1
+				rputs "$content"
+				end_html 1
 			} else {
-				tputs "Was never ran"
-			}
-			tputs	"			"
-			tputs	"		</td>"
-			tputs	"	</tr>"
-			tputs	"</table>"
+				tputs "I could not find the endpoint you were finding."
 
-			rputs ""
-			start_html "Project: $projname" 1
-			rputs "$content"
-			end_html 1
+				rputs "Status: 404 Not Found"
+				rputs ""
+				start_html "Project: $projname" 1
+				rputs "$content"
+				end_html 1
+			}
 		} else {
 			tputs "I could not find the project you were finding."
 

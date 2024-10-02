@@ -1,2 +1,62 @@
 #!/usr/bin/env tclsh
 # $Id$
+package require tdom
+foreach path [glob "@@PREFIX@@/lib/koakuma/utility/*.tcl"] {
+	source $path
+}
+set name ""
+set description ""
+set dothis ""
+foreach arg $argv {
+	if { [string range "$arg" 0 0] == "-" } {
+		if { "$arg" == "-h" || "$arg" == "--help" } {
+			puts "Usage: $argv0 \[-u username\] \[-p password\] \[-R rpc_url\] name description"
+			puts "You can set the environment variable `KOAKUMA_RPC' to override default RPC URL."
+			puts "Default: http://127.0.0.1/koakuma/rpc"
+			exit 0
+		} elseif { "$arg" == "-u" } {
+			set dothis "set-username"
+		} elseif { "$arg" == "-p" } {
+			set dothis "set-password"
+		} elseif { "$arg" == "-R" } {
+			set dothis "set-rpc"
+		}
+	} else {
+		if { "$dothis" == "set-username" } {
+			set ::rpc::useranme "$arg"
+		} elseif { "$dothis" == "set-password" } {
+			set ::rpc::password "$arg"
+		} elseif { "$dothis" == "set-rpc" } {
+			set RPC_URL "$arg"
+		} elseif { "$name" == "" } {
+			set name "$arg"
+		} elseif { "$description" == "" } {
+			set description "$arg"
+		}
+		set dothis ""
+	}
+}
+
+if { "$name" == "" || "$description" == "" } {
+	puts "See --help."
+	exit 1
+}
+
+dom createNodeCmd -tagName "name" -jsonType NONE elementNode keyName
+dom createNodeCmd -tagName "description" -jsonType NONE elementNode keyDescription
+
+dom createNodeCmd -jsonType STRING textNode valueString
+
+set doc [dom createDocumentNode]
+
+$doc appendFromScript {
+	keyName {valueString "$name"}
+	keyDescription {valueString "$description"}
+}
+
+set result [::rpc::send "/launch-job" "[$doc asJSON]"]
+if { [lindex $result 0] == 200 } {
+} else {
+	set doc [dom parse -json "[lindex $result 1]"]
+	puts "Error: [$doc selectNodes "string(/error)"]"
+}
