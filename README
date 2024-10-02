@@ -1,4 +1,4 @@
-Koakuma is a simple autobuild script.
+Koakuma is a simple autobuild CGI.
 Requires:
  - Tcl8.6
  - Tcllib
