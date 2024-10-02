@@ -240,10 +240,16 @@ proc start_html {title has_toc} {
 	rputs	"		<meta http-equiv=\"Content-Type\" content=\"text/html;charset=UTF-8\">"
 	rputs	"		<title>$title - Koakuma</title>"
 	rputs	"		<link rel=\"stylesheet\" href=\"$css\">"
+	set msie " src=\"$koakuma_png\""
+	if { [info exists "env(HTTP_USER_AGENT)"] } {
+		if { [regexp {MSIE 6} "$env(HTTP_USER_AGENT)"] } {
+			set msie " style=\"filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src='$koakuma_png', sizingMethod='scale');\" src=\"/static/transparent.gif\""
+		}
+	}
 	rputs	"	</head>"
 	rputs	"	<body>"
 	rputs	"		<a href=\"/koakuma\" id=\"gomain\">"
-	rputs	"			<img src=\"$koakuma_png\" alt=\"Koakuma by Kasuya Baian\" height=\"128px\">"
+	rputs	"			<img alt=\"Koakuma by Kasuya Baian\" height=\"128px\"$msie>"
 	rputs	"		</a>"
 	rputs	"		<div id=\"space\"></div>"
 	rputs	"		<div id=\"title\">"

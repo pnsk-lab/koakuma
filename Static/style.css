@@ -49,6 +49,11 @@ th {
 	height: 88px;
 }
 
+img {
+	border: none;
+	background-color: transparent;
+}
+
 #title {
 	padding: 5px;
 	background-color: #606080;
