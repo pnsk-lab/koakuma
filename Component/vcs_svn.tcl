@@ -15,3 +15,17 @@ proc Subversion_info {} {
 	tputs	"	</tr>"
 	tputs	"</table>"
 }
+
+proc Subversion_repository {url ws} {
+	if { [file exists "$ws"] } {
+		if { [catch {exec svn up "$ws" >@stdout 2>@1}] } {
+			return 1
+		}
+		return 0
+	} else {
+		if { [catch {exec svn co "$url" "$ws" >@stdout 2>@1}] } {
+			return 1
+		}
+		return 0
+	}
+}

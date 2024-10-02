@@ -4,6 +4,8 @@
 set KOAKUMA_VERSION "1.00"
 set components ""
 
+chan configure stdout -buffering none
+
 proc exiting {code} {
 	exit $code
 }
@@ -23,6 +25,8 @@ proc crash {reason} {
 		puts stderr "	$name: $description, version $version"
 	}
 	puts stderr "Reason: $reason"
+	puts stderr "Code: $::errorCode"
+	puts stderr "Info: $::errorInfo"
 	puts stderr "----- End Koakuma Crash dump log -----"
 	puts	"Content-Type: text/html"
 	puts	"Status: 500 Internal Server Error"
@@ -50,8 +54,16 @@ if { ![info exists env(PATH_INFO)] } {
 	exiting 0
 }
 
+if { [file exists "@@PREFIX@@/etc/koakuma/cgi.conf"] } {
+	if { [catch {
+		source "@@PREFIX@@/etc/koakuma/cgi.conf"
+	}] } {
+		crash "Config failure"
+	}
+}
+
 if { [catch {
-	package require tdom
+	set tdom_version "[package require tdom]"
 	dom createNodeCmd -tagName "rpc" elementNode rootXML
 	dom createNodeCmd -tagName "project" elementNode keyProject
 	dom createNodeCmd -tagName "version" -jsonType NONE elementNode keyVersion
@@ -63,6 +75,37 @@ if { [catch {
 	dom createNodeCmd -jsonType STRING textNode valueString
 }] } {
 	crash "Failed to load tDOM"
+}
+
+if { [catch {
+	set tclx_version "[package require Tclx]"
+}] } {
+	crash "Failed to load TclX"
+}
+
+proc Get_KV {lst key} {
+	foreach {k v} $lst {
+		if { "$k" == "$key" } {
+			return "$v"
+		}
+	}
+	return ""
+}
+
+proc URL_parse {url} {
+	if { [regexp {^([^:]+)://(([^:]+:[^@]+|[^:]+:|[^:]+)@)?([^/]+)(.+)?$} "$url" -> scheme userpass_at userpass host path] } {
+		lappend result "scheme" "$scheme"
+		lappend result "userpass" "$userpass"
+		lappend result "host" "$host"
+		lappend result "path" "$path"
+		return $result
+	} elseif { [regexp {^/.+$} "$url" path] } {
+		lappend result "scheme" "file"
+		lappend result "userpass" ""
+		lappend result "host" ""
+		lappend result "path" "$path"
+		return $result
+	}
 }
 
 if { [catch {
@@ -82,6 +125,7 @@ while { [gets stdin line] >= 0 } {
 		set data "$data\n$line"
 	}
 }
+chan close stdin
 
 set toc ""
 set result ""
@@ -126,7 +170,8 @@ proc tputs {data} {
 }
 
 proc html_escape {data} {
-	return "[regsub -all {&} "[regsub -all {>} "[regsub -all {<} "$data" "&lt;"]" "&gt;"]" "&amp;"]"
+	set tmp "[regsub -all {<} "[regsub -all {>} "$data" {\&gt;}]" {\&lt;}]"
+	return "[regsub -all {[^:]+://[^ ]+} "$tmp" {<a href="\0">\0</a>}]"
 }
 
 proc open_projects {} {
@@ -163,6 +208,8 @@ proc scan_projects {run} {
 	foreach elem [$doc selectNodes "/projects/project"] {
 		set name "[$elem selectNodes "string(name)"]"
 		set description "[$elem selectNodes "string(description)"]"
+		set vcs "[$elem selectNodes "string(vcs)"]"
+		set vcs_url "[$elem selectNodes "string(url)"]"
 		eval $run
 	}
 }
@@ -185,17 +232,17 @@ proc close_projects {} {
 }
 
 proc start_html {title has_toc} {
-	global toc env
+	global toc env koakuma_png css
 	rputs	"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">"
 	rputs	"<html>"
 	rputs	"	<head>"
 	rputs	"		<meta http-equiv=\"Content-Type\" content=\"text/html;charset=UTF-8\">"
 	rputs	"		<title>$title - Koakuma</title>"
-	rputs	"		<link rel=\"stylesheet\" href=\"/static/style.css\">"
+	rputs	"		<link rel=\"stylesheet\" href=\"$css\">"
 	rputs	"	</head>"
 	rputs	"	<body>"
 	rputs	"		<a href=\"/koakuma\" id=\"gomain\">"
-	rputs	"			<img src=\"/static/koakuma.png\" alt=\"Koakuma by Kasuya Baian\" height=\"192px\">"
+	rputs	"			<img src=\"$koakuma_png\" alt=\"Koakuma by Kasuya Baian\" height=\"192px\">"
 	rputs	"		</a>"
 	rputs	"		<div id=\"space\"></div>"
 	rputs	"		<div id=\"title\">"
@@ -275,6 +322,22 @@ if { [catch {
 		tputs	"			$tcl_platform(os)/$tcl_platform(machine) $tcl_platform(osVersion)"
 		tputs	"		</td>"
 		tputs	"	</tr>"
+		tputs	"	<tr>"
+		tputs	"		<th>"
+		tputs	"			tDOM version"
+		tputs	"		</th>"
+		tputs	"		<td>"
+		tputs	"			$tdom_version"
+		tputs	"		</td>"
+		tputs	"	</tr>"
+		tputs	"	<tr>"
+		tputs	"		<th>"
+		tputs	"			TclX version"
+		tputs	"		</th>"
+		tputs	"		<td>"
+		tputs	"			$tclx_version"
+		tputs	"		</td>"
+		tputs	"	</tr>"
 		tputs	"</table>"
 		add_toc "Components"
 		loop_components {
@@ -293,7 +356,7 @@ if { [catch {
 			}
 			tputs	"<tr>"
 			tputs	"	<th><a href=\"/koakuma/project/$name\">$name</a></th>"
-			tputs	"	<td>$description</td>"
+			tputs	"	<td>[html_escape "$description"]</td>"
 			tputs	"</tr>"
 		}
 		close_projects
@@ -332,12 +395,18 @@ if { [catch {
 					}
 				} else {
 					set has_name 0
+					set use_vcs ""
+					set use_vcs_url ""
 					open_projects
 					scan_projects {
 						upvar 1 has_name has_name
 						upvar 1 projname projname
+						upvar 1 use_vcs use_vcs
+						upvar 1 use_vcs_url use_vcs_url
 						if { "$name" == "$projname" } {
 							set has_name 1
+							set use_vcs "$vcs"
+							set use_vcs_url "$vcs_url"
 							break
 						}
 					}
@@ -348,6 +417,98 @@ if { [catch {
 							keyError {valueString "Project does not exist"}
 						}
 					} else {
+						set cont 1
+						if { [file exists "@@PREFIX@@/lib/koakuma/db/data/$projname/build.lock"] } {
+							set fid [open "@@PREFIX@@/lib/koakuma/db/data/$projname/build.lock" "r"]
+							set readpid "[gets $fid]"
+							close $fid
+							if { [file exists "/proc/$readpid"] } {
+								set cont 0
+								rputs "Status: 403 Forbidden"
+								$doc appendFromScript {
+									keyError {valueString "Other building process has been running"}
+								}
+							}
+						}
+						if { $cont == 1 } {
+							set fid [open "@@PREFIX@@/lib/koakuma/db/data/$projname/buildcount" "r"]
+							set count [expr [gets $fid] + 1]
+							close $fid
+
+							set fid [open "@@PREFIX@@/lib/koakuma/db/data/$projname/buildcount" "w"]
+							puts $fid "$count"
+							close $fid
+
+							set count "[format %08s "$count"]"
+
+							set fid [open "@@PREFIX@@/lib/koakuma/db/data/$projname/lastrun" "w"]
+							puts $fid "[clock seconds]"
+							close $fid
+
+							file mkdir "@@PREFIX@@/lib/koakuma/db/data/$projname/build-$count"
+
+							set pid [fork]
+							if { $pid } {
+								set fid [open "@@PREFIX@@/lib/koakuma/db/data/$projname/build.lock" "w"]
+								puts $fid "$pid"
+								close $fid
+							} else {
+								set fid [open "@@PREFIX@@/lib/koakuma/db/data/$projname/build-$count/log" "w"]
+								set fail 0
+
+								dup $fid stdout
+								dup $fid stderr
+							
+								puts "===== Checkout"
+								puts "Using VCS: $use_vcs"
+								if { [llength [info procs "${use_vcs}_repository"]] == 0 } {
+									puts "Component internal failure"
+									set fail 1
+								} else {
+									cd "@@PREFIX@@/lib/koakuma/db/data/$projname"
+									if { [${use_vcs}_repository "$use_vcs_url" "workspace"] } {
+										puts "Checkout failure"
+										set fail 1
+									}
+								}
+								if { $fail == 0 } {
+									puts "===== Build"
+									cd "@@PREFIX@@/lib/koakuma/db/data/$projname/workspace"
+									if { [file exists "@@PREFIX@@/lib/koakuma/db/data/$projname/workspace/Koakumafile"] } {
+										if { [catch {
+											namespace eval koakumafile {
+												source "@@PREFIX@@/lib/koakuma/db/data/$projname/workspace/Koakumafile"
+											}
+											koakumafile::run "$projname"
+										}] } {
+											puts "Failed to run Koakumafile"
+											set fail 1
+										}
+									} else {
+										puts "Nothing to do"
+									}
+								}
+								if { $fail == 0 } {
+									puts "Build successful"
+									set fidsuc [open "@@PREFIX@@/lib/koakuma/db/data/$projname/lastsuccessfulrun" "w"]
+									puts $fidsuc "[clock seconds]"
+									close $fidsuc
+									
+									set fidsuc [open "@@PREFIX@@/lib/koakuma/db/data/$projname/successbuild" "r"]
+									set sucbul [gets $fidsuc]
+									close $fidsuc
+									
+									set fidsuc [open "@@PREFIX@@/lib/koakuma/db/data/$projname/successbuild" "w"]
+									puts $fidsuc "[expr $sucbul + 1]"
+									close $fidsuc
+								}
+
+								close $fid
+
+								file delete "@@PREFIX@@/lib/koakuma/db/data/$projname/build.lock"
+								exit 0
+							}
+						}
 					}
 				}
 			}
@@ -415,6 +576,12 @@ if { [catch {
 						}
 						write_db "[$xmldoc asXML]"
 						file mkdir "@@PREFIX@@/lib/koakuma/db/data/$projname"
+						set fid [open "@@PREFIX@@/lib/koakuma/db/data/$projname/buildcount" "w"]
+						puts $fid "0"
+						close $fid
+						set fid [open "@@PREFIX@@/lib/koakuma/db/data/$projname/successbuild" "w"]
+						puts $fid "0"
+						close $fid
 						close_projects
 					}
 				}
@@ -473,8 +640,36 @@ if { [catch {
 				tputs	"			"
 				tputs	"		</td>"
 				tputs	"	</tr>"
+				set builds [lsort -ascii [glob -nocomplain "@@PREFIX@@/lib/koakuma/db/data/$projname/build-*"]]
+				if { [llength $builds] > 0 } {
+					tputs	"	<tr>"
+					tputs	"		<th>"
+					tputs	"			Successful builds"
+					tputs	"		</th>"
+					tputs	"		<td>"
+					if { [file exists "@@PREFIX@@/lib/koakuma/db/data/$projname/successbuild"] } {
+						set fid [open "@@PREFIX@@/lib/koakuma/db/data/$projname/successbuild" "r"]
+						tputs "[format %.2f [expr [gets $fid] / [llength $builds] * 100]]%"
+						close $fid
+					}
+					tputs	"			"
+					tputs	"		</td>"
+					tputs	"	</tr>"
+				}
 				tputs	"</table>"
-				add_toc "Build details"
+
+				set builds [lsort -ascii [glob -nocomplain "@@PREFIX@@/lib/koakuma/db/data/$projname/build-*"]]
+				if { [llength $builds] > 0 } {
+					add_toc "Last build log"
+					set lastbuild "[lindex $builds [expr [llength $builds] - 1]]"
+					set fid [open "$lastbuild/log" "r"]
+					tputs "<pre>"
+					while { [gets $fid line] >= 0 } {
+						tputs "[html_escape "$line"]"
+					}
+					tputs "</pre>"
+					close $fid
+				}
 	
 				rputs ""
 				start_html "Project: $projname" 1

@@ -22,6 +22,7 @@ install: Component/* Tool/* Utility/* Static/* koakuma.cgi.in apache.conf.in
 	cp -rf Static/* $(PREFIX)/lib/koakuma/htdocs/static/
 	$(REPLACE) koakuma.cgi.in > $(PREFIX)/lib/koakuma/cgi-bin/koakuma.cgi
 	$(REPLACE) apache.conf.in > $(PREFIX)/etc/koakuma/apache.conf
+	cp cgi.conf $(PREFIX)/etc/koakuma/
 	chmod +x $(PREFIX)/lib/koakuma/cgi-bin/koakuma.cgi
 	chmod +x $(PREFIX)/bin/create-project
 	chmod +x $(PREFIX)/bin/launch-job
