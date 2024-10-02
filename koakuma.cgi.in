@@ -386,7 +386,7 @@ if { [catch {
 					keyError {valueString "Bad JSON"}
 				}
 			} else {
-				set projname "[$clidoc selectNodes "string(/name)"]"
+				set projname "[regsub -all { } "[$clidoc selectNodes "string(/name)"]" "-"]"
 				set builddesc "[$clidoc selectNodes "string(/description)"]"
 				if { "$projname" == "" || "$builddesc" == "" } {
 					rputs "Status: 400 Bad Request"
@@ -521,7 +521,7 @@ if { [catch {
 					keyError {valueString "Bad JSON"}
 				}
 			} else {
-				set projname "[$clidoc selectNodes "string(/name)"]"
+				set projname "[regsub -all { } "[$clidoc selectNodes "string(/name)"]" "-"]"
 				set projdescription "[$clidoc selectNodes "string(/description)"]"
 				set projvcs "[$clidoc selectNodes "string(/vcs)"]"
 				set url "[$clidoc selectNodes "string(/url)"]"
@@ -614,7 +614,7 @@ if { [catch {
 				tputs	"		</th>"
 				tputs	"		<td>"
 				if { [file exists "@@PREFIX@@/lib/koakuma/db/data/$projname/build.lock"] } {
-					set fid [open "@@PREFIX@@/lib/koakuma/db/data/$projname/build.loc" "r"]
+					set fid [open "@@PREFIX@@/lib/koakuma/db/data/$projname/build.lock" "r"]
 					if { [file exists "/proc/[gets $fid]"] } {
 						tputs "Running"
 					} else {
