@@ -243,7 +243,7 @@ proc start_html {title has_toc} {
 	rputs	"	</head>"
 	rputs	"	<body>"
 	rputs	"		<a href=\"/koakuma\" id=\"gomain\">"
-	rputs	"			<img src=\"$koakuma_png\" alt=\"Koakuma by Kasuya Baian\" height=\"192px\">"
+	rputs	"			<img src=\"$koakuma_png\" alt=\"Koakuma by Kasuya Baian\" height=\"128px\">"
 	rputs	"		</a>"
 	rputs	"		<div id=\"space\"></div>"
 	rputs	"		<div id=\"title\">"
