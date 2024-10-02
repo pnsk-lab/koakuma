@@ -239,6 +239,12 @@ proc close_projects {} {
 
 set what ""
 
+proc sanitize {data} {
+	set tmp "[regsub -all { } "$data" "-"]"
+	set br "[regsub -all {\(|\)} "$tmp" "_"]"
+	return "$br"
+}
+
 proc start_html {title has_toc} {
 	global toc env koakuma_png css what
 	rputs	"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">"
@@ -275,9 +281,9 @@ proc start_html {title has_toc} {
 		rputs	"				<span id=\"toctitle\">TOC</span><hr>"
 		foreach sect $toc {
 			if { "[string range "[regsub -all { } "$sect" "-"]" 0 0]" == "-" } {
-				rputs "<a class=\"shiftlink\" href=\"#TOC-[regsub {^-} "[regsub -all { } "$sect" "-"]" ""]\">[regsub {^-} "$sect" ""]</a><br>"
+				rputs "<a class=\"shiftlink\" href=\"#TOC-[sanitize "[regsub {^-} "$sect" ""]"]\">[regsub {^-} "$sect" ""]</a><br>"
 			} else {
-				rputs "<a href=\"#TOC-[regsub -all { } "$sect" "-"]\">$sect</a><br>"
+				rputs "<a href=\"#TOC-[sanitize "$sect"]\">$sect</a><br>"
 			}
 		}
 		rputs	"			</div>"
@@ -302,13 +308,13 @@ proc end_html {has_toc} {
 
 proc add_toc {data} {
 	global toc
-	tputs	"<h2 id=\"TOC-[regsub -all { } "$data" "-"]\"><a href=\"#TOC-[regsub -all { } "$data" "-"]\">#</a> $data</h2>"
+	tputs	"<h2 id=\"TOC-[sanitize "$data"]\"><a href=\"#TOC-[sanitize "$data" "-"]\">#</a> $data</h2>"
 	lappend toc "$data"
 }
 
 proc add_toc2 {data} {
 	global toc
-	tputs	"<h3 id=\"TOC-[regsub -all { } "$data" "-"]\"><a href=\"#TOC-[regsub -all { } "$data" "-"]\">#</a> $data</h3>"
+	tputs	"<h3 id=\"TOC-[sanitize "$data"]\"><a href=\"#TOC-[sanitize "$data"]\">#</a> $data</h3>"
 	lappend toc "-$data"
 }
 
