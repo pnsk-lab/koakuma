@@ -3,7 +3,10 @@
 PREFIX = /usr/local
 REPLACE = sed "s%@@PREFIX@@%$(PREFIX)%g"
 
-.PHONY: install
+.PHONY: default install
+
+default:
+	@echo To install, just run: make install
 
 install: Component/* Tool/* Utility/* Static/* koakuma.cgi.in apache.conf.in
 	mkdir -p $(PREFIX)/lib/koakuma/component/
