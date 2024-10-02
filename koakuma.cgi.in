@@ -482,7 +482,8 @@ if { [catch {
 
 								dup $fid stdout
 								dup $fid stderr
-							
+
+								puts "Build trigger description: $builddesc"
 								puts "===== Checkout"
 								puts "Using VCS: $use_vcs"
 								if { [llength [info procs "${use_vcs}_repository"]] == 0 } {
