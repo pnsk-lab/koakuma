@@ -67,16 +67,25 @@ namespace eval rpc {
 		return 0
 	}
 	proc send {path content} {
-		set headers ""
 		global RPC_URL
-		if { "$::rpc::username" != "" } {
-			lappend headers "Authorization"
-			lappend headers "Basic [::base64::encode -wrapchar "" "$::rpc::username:$::rpc::password"]"
+		set code ""
+		set body ""
+		while 1 {
+			set headers ""
+			if { "$::rpc::username" != "" } {
+				lappend headers "Authorization"
+				lappend headers "Basic [::base64::encode -wrapchar "" "$::rpc::username:$::rpc::password"]"
+			}
+			set tok [::http::geturl "$RPC_URL$path" -headers $headers -type "application/json" -query "$content"]
+			set code [::http::ncode $tok]
+			set body "[::http::data $tok]"
+			::http::cleanup $tok
+			if { $code == 401 } {
+				::rpc::ask-auth
+			} else {
+				break
+			}
 		}
-		set tok [::http::geturl "$RPC_URL$path" -headers $headers -type "application/json" -query "$content"]
-		set code [::http::ncode $tok]
-		set body "[::http::data $tok]"
-		::http::cleanup $tok
 		lappend result "$code"
 		lappend result "$body"
 		return $result

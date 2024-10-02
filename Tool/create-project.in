@@ -4,18 +4,32 @@ package require tdom
 foreach path [glob "@@PREFIX@@/lib/koakuma/utility/*.tcl"] {
 	source $path
 }
+set dothis ""
 foreach arg $argv {
 	if { [string range "$arg" 0 0] == "-" } {
 		if { "$arg" == "-h" || "$arg" == "--help" } {
-			puts "Usage: $argv0"
+			puts "Usage: $argv0 \[-u username\] \[-p password\] \[-R rpc_url\]"
 			puts "You can set the environment variable `KOAKUMA_RPC' to override default RPC URL."
 			puts "Default: http://127.0.0.1/koakuma/rpc"
 			exit 0
+		} elseif { "$arg" == "-u" } {
+			set dothis "set-username"
+		} elseif { "$arg" == "-p" } {
+			set dothis "set-password"
+		} elseif { "$arg" == "-R" } {
+			set dothis "set-rpc"
 		}
+	} else {
+		if { "$dothis" == "set-username" } {
+			::rpc::set-username "$arg"
+		} elseif { "$dothis" == "set-password" } {
+			::rpc::set-password "$arg"
+		} elseif { "$dothis" == "set-rpc" } {
+			set RPC_URL "$arg"
+		}
+		set dothis ""
 	}
 }
-
-::rpc::init
 
 dom createNodeCmd -tagName "name" -jsonType NONE elementNode keyName
 dom createNodeCmd -tagName "description" -jsonType NONE elementNode keyDescription
