@@ -17,6 +17,11 @@ proc loop_components {run} {
 	}
 }
 
+proc RunCommand {command} {
+	puts "* $command"
+	eval exec $command >@stdout 2>@1
+}
+
 proc crash {reason} {
 	global components KOAKUMA_VERSION
 	puts stderr "----- Start Koakuma Crash dump log -----"
