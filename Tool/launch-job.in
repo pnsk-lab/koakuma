@@ -23,9 +23,9 @@ foreach arg $argv {
 		}
 	} else {
 		if { "$dothis" == "set-username" } {
-			set ::rpc::useranme "$arg"
+			::rpc::set-username "$arg"
 		} elseif { "$dothis" == "set-password" } {
-			set ::rpc::password "$arg"
+			::rpc::set-password "$arg"
 		} elseif { "$dothis" == "set-rpc" } {
 			set RPC_URL "$arg"
 		} elseif { "$name" == "" } {

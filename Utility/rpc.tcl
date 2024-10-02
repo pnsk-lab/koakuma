@@ -16,6 +16,8 @@ if { [info exists "env(KOAKUMA_RPC)"] } {
 set RPC_URL "[regsub {/+$} "$RPC_URL" ""]"
 
 namespace eval rpc {
+	set username ""
+	set password ""
 	proc require-auth {} {
 		global RPC_URL
 		set tok [::http::geturl "$RPC_URL"]
@@ -29,8 +31,14 @@ namespace eval rpc {
 			return 0
 		}
 	}
-	set username ""
-	set password ""
+	proc set-username {us} {
+		global username
+		set ::rpc::username "$us"
+	}
+	proc set-password {pw} {
+		global password
+		set ::rpc::password "$pw"
+	}
 	proc ask-auth {} {
 		global username
 		global password
