@@ -5,3 +5,7 @@ Requires:
  - tDOM: https://wiki.tcl-lang.org/page/tDOM
  - tcl-tls if you want HTTPs for RPC.
  - TclX
+
+SVN (Original): http://svn.nishi.boats/repo/koakuma
+Git Mirror #1: https://git.chaotic.ninja/git/nishi/koakuma
+Git Mirror #2: https://github.com/pnsk-lab/koakuma
