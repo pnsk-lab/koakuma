@@ -77,8 +77,11 @@ img {
 }
 
 #doc {
-	margin-right: 14em;
 	margin-top: -20px;
+}
+
+#docinside {
+	margin-right: 14em;
 }
 
 a {
