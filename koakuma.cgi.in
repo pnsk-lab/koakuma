@@ -232,8 +232,10 @@ proc close_projects {} {
 	file delete "@@PREFIX@@/lib/koakuma/db/projects.lock"
 }
 
+set what ""
+
 proc start_html {title has_toc} {
-	global toc env koakuma_png css
+	global toc env koakuma_png css what
 	rputs	"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">"
 	rputs	"<html>"
 	rputs	"	<head>"
@@ -278,6 +280,7 @@ proc start_html {title has_toc} {
 	}
 	rputs	"			<div id=\"docinside\">"
 	rputs	"				<h1>$title</h1>"
+	rputs	"				$what"
 	rputs	"				<div id=\"shift\">"
 }
 proc end_html {has_toc} {
@@ -318,6 +321,7 @@ if { [catch {
 		rputs "Content-Type: text/html"
 	}
 	if { "$path" == "/" } {
+		set what "This is the main page."
 		set has_projects 0
 		add_toc "Projects"
 		open_projects
@@ -619,6 +623,7 @@ if { [catch {
 		
 		if { "$has_project" != "" } {
 			if { "$projpath" == "" || "$projpath" == "/" } {
+				set what "This is the project page."
 				add_toc "Description"
 				tputs "[html_escape "$has_project"]"
 				add_toc "Details"
