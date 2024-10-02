@@ -97,5 +97,6 @@ a:visited {
 }
 
 pre {
-	overflow-x: scroll;
+	overflow: scroll;
+	width: 100%;
 }
