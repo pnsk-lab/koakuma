@@ -51,7 +51,6 @@ ask_for "Name" name
 ask_for "Description" description
 ask_for "VCS" vcs
 puts "Example URL for CVS: pserver://anon:@cvs.nishi.boats/cvs/nishi@tewi"
-puts "Example URL for CVS: ssh://anoncvs:anoncvs@cvs.nishi.boats/cvs/nishi@tewi"
 ask_for "VCS URL" url
 
 $doc appendFromScript {
