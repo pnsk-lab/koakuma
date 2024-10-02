@@ -265,7 +265,7 @@ proc start_html {title has_toc} {
 	if { "$has_toc" == "1" } {
 		rputs	"		<div id=\"toc\">"
 		rputs	"			<div id=\"tocinside\">"
-		rputs	"				<div id=\"toctitle\">TOC</div>"
+		rputs	"				<span id=\"toctitle\">TOC</span><hr>"
 		foreach sect $toc {
 			if { "[string range "[regsub -all { } "$sect" "-"]" 0 0]" == "-" } {
 				rputs "<a class=\"shiftlink\" href=\"#TOC-[regsub {^-} "[regsub -all { } "$sect" "-"]" ""]\">[regsub {^-} "$sect" ""]</a><br>"
@@ -278,9 +278,11 @@ proc start_html {title has_toc} {
 	}
 	rputs	"			<div id=\"docinside\">"
 	rputs	"				<h1>$title</h1>"
+	rputs	"				<div id=\"shift\">"
 }
 proc end_html {has_toc} {
 	global KOAKUMA_VERSION toc
+	rputs	"				</div>"
 	rputs	"			</div>"
 	rputs	"		</div>"
 	rputs	"		<div id=\"clearfix\"></div>"

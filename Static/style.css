@@ -14,24 +14,30 @@ h1 {
 	font-family: sans-serif;
 	border: solid 1px #606080;
 	padding: 5px;
+	font-size: 30px;
 }
 
 h2 {
+	font-family: sans-serif;
 	background-color: #606080;
 	color: #ffffff;
-	padding: 5px;
-	padding-left: 25px;
+	padding: 5px 0;
+	padding-left: 20px;
+	font-size: 20px;
 }
 
 h3 {
+	font-family: sans-serif;
 	background-color: #f0f0f0;
 	color: #606080;
-	padding: 5px;
+	padding: 5px 0;
 	padding-left: 10px;
+	font-size: 15px;
 }
 
 hr {
 	border: solid 1px #606080;
+	clear: both;
 }
 
 table {
@@ -55,7 +61,8 @@ img {
 }
 
 #title {
-	padding: 5px;
+	padding: 5px 0;
+	font-family: sans-serif;
 	background-color: #606080;
 	color: #ffffff;
 	font-size: 30px;
@@ -71,11 +78,16 @@ img {
 
 #toctitle {
 	font-size: 30px;
-	background-color: #f8f8f8;
+	display: inline;
+	width: 100%;
 }
 
 .shiftlink {
-	margin-left: 10px;
+	padding-left: 10px;
+}
+
+#shift {
+	padding-left: 30px;
 }
 
 #doc {
