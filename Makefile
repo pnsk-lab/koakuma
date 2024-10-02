@@ -13,6 +13,7 @@ install: Component/* Tool/* Utility/* koakuma.cgi.in apache.conf.in
 	mkdir -p $(PREFIX)/lib/koakuma/cgi-bin/
 	mkdir -p $(PREFIX)/bin/
 	mkdir -p $(PREFIX)/lib/koakuma/db
+	mkdir -p $(PREFIX)/lib/koakuma/db/data
 	if [ ! -e "$(PREFIX)/lib/koakuma/db/projects.db" ] ; then echo "<projects></projects>" > $(PREFIX)/lib/koakuma/db/projects.db ; fi
 	cp -rf Component/* $(PREFIX)/lib/koakuma/component/
 	cp -rf Utility/* $(PREFIX)/lib/koakuma/utility/
@@ -27,5 +28,7 @@ install: Component/* Tool/* Utility/* koakuma.cgi.in apache.conf.in
 	chmod +x $(PREFIX)/bin/launch-job
 	@echo
 	@echo Make sure $(PREFIX)/lib/koakuma/db is writable by your HTTPd user.
+	@echo Assuming your HTTPd user is www, just run: chmod -R www $(PREFIX)/lib/koakuma/db
+	@echo
 	@echo By default, Koakuma stock Apache config uses $(PREFIX)/etc/koakuma/passwd
 	@echo for RPC authentication.

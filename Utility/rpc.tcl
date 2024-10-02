@@ -73,4 +73,20 @@ namespace eval rpc {
 		lappend result "$body"
 		return $result
 	}
+	proc init {} {
+		puts -nonewline "Authentication: "
+		set status [::rpc::require-auth]
+		if { $status == 1 } {
+			puts "Required"
+			if { ![::rpc::ask-auth] } {
+				puts "Authentication failure"
+				exit 1
+			}
+		} elseif { $status < 0 } {
+			puts "Got forbidden, cannot continue"
+			exit 1
+		} else {
+			puts "Not required"
+		}
+	}
 }

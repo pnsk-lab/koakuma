@@ -370,6 +370,7 @@ if { [catch {
 							}
 						}
 						write_db "[$xmldoc asXML]"
+						file mkdir "@@PREFIX@@/lib/koakuma/db/data/$projname"
 						close_projects
 					}
 				}
@@ -393,6 +394,21 @@ if { [catch {
 		if { "$has_project" != "" } {
 			add_toc "Description"
 			tputs "[html_escape "$has_project"]"
+			add_toc "Details"
+			tputs	"<table border=\"0\">"
+			tputs	"	<tr>"
+			tputs	"		<th>"
+			tputs	"			Last run"
+			tputs	"		</th>"
+			tputs	"		<td>"
+			if { [file exists "@@PREFIX@@/lib/koakuma/db/data/$projname/lastrun"] } {
+			} else {
+				tputs "Was never ran"
+			}
+			tputs	"			"
+			tputs	"		</td>"
+			tputs	"	</tr>"
+			tputs	"</table>"
 
 			rputs ""
 			start_html "Project: $projname" 1
