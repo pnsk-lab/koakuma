@@ -241,11 +241,9 @@ proc start_html {title has_toc} {
 	rputs	"		<title>$title - Koakuma</title>"
 	rputs	"		<link rel=\"stylesheet\" href=\"$css\">"
 	set msie " src=\"$koakuma_png\""
-	set msie2 ""
 	if { [info exists "env(HTTP_USER_AGENT)"] } {
 		if { [regexp {MSIE 6} "$env(HTTP_USER_AGENT)"] } {
 			set msie " style=\"filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src='$koakuma_png', sizingMethod='scale');\" src=\"/static/transparent.gif\""
-			set msie2 " style=\"margin-top: 20px;\""
 		}
 	}
 	rputs	"	</head>"
@@ -258,15 +256,16 @@ proc start_html {title has_toc} {
 	rputs	"			Koakuma"
 	rputs	"		</div>"
 	rputs	"		<a href=\"$env(SCRIPT_NAME)\">Root</a>"
-	rputs	"		<div id=\"clearfix\"></div>"
 	if { "$has_toc" == "1" } {
 		rputs	"		<div id=\"doc\">"
 	} else {
 		rputs	"		<div id=\"doc-notoc\">"
 	}
+	rputs	"		<div style=\"clear: both;\"></div>"
 	if { "$has_toc" == "1" } {
-		rputs	"		<div id=\"toc\"$msie2>"
-		rputs	"			<div id=\"toctitle\">TOC</div>"
+		rputs	"		<div id=\"toc\">"
+		rputs	"			<div id=\"tocinside\">"
+		rputs	"				<div id=\"toctitle\">TOC</div>"
 		foreach sect $toc {
 			if { "[string range "[regsub -all { } "$sect" "-"]" 0 0]" == "-" } {
 				rputs "<a class=\"shiftlink\" href=\"#TOC-[regsub {^-} "[regsub -all { } "$sect" "-"]" ""]\">[regsub {^-} "$sect" ""]</a><br>"
@@ -274,6 +273,7 @@ proc start_html {title has_toc} {
 				rputs "<a href=\"#TOC-[regsub -all { } "$sect" "-"]\">$sect</a><br>"
 			}
 		}
+		rputs	"			</div>"
 		rputs	"		</div>"
 	}
 	rputs	"			<div id=\"docinside\">"

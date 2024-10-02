@@ -63,6 +63,12 @@ img {
 	padding-right: 25%;
 }
 
+#toc {
+	float: right;
+	width: 13em;
+	background-color: #f0f0f0;
+}
+
 #toctitle {
 	font-size: 30px;
 	background-color: #f8f8f8;
@@ -72,16 +78,11 @@ img {
 	margin-left: 10px;
 }
 
-#clearfix {
-	clear: both;
-}
-
 #doc {
-	margin-top: -20px;
 }
 
 #docinside {
-	margin-right: 14em;
+	padding-right: 14em;
 }
 
 a {
@@ -92,11 +93,8 @@ a:visited {
 	color: #a0a0a0;
 }
 
-#toc {
-	float: right;
-	width: 13em;
+#tocinside {
 	padding: 5px;
-	background-color: #f0f0f0;
 }
 
 pre {
