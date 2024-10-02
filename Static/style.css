@@ -91,6 +91,11 @@ img {
 }
 
 #doc {
+	margin-top: -15px;
+}
+
+#doc-notoc {
+	margin-top: -15px;
 }
 
 #docinside {
