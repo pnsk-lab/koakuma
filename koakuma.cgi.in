@@ -170,8 +170,9 @@ proc tputs {data} {
 }
 
 proc html_escape {data} {
-	set tmp "[regsub -all {<} "[regsub -all {>} "$data" {\&gt;}]" {\&lt;}]"
-	return "[regsub -all {[^: ]+://[^ ]+} "$tmp" {<a href="\0">\0</a>}]"
+	set tmp "[regsub -all {<} "[regsub -all {>} "[string trim "$data"]" {\&gt;}]" {\&lt;}]"
+	set link "[regsub -all {[^: ]+://[^ \n]+} "$tmp" {<a href="\0">\0</a>}]"
+	return "[regsub -all {\n} "$link" {<br>}]"
 }
 
 proc open_projects {} {
