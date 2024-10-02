@@ -277,8 +277,9 @@ proc start_html {title has_toc} {
 	rputs	"			<h1>$title</h1>"
 }
 proc end_html {has_toc} {
-	global KOAKUMA_VERSION
+	global KOAKUMA_VERSION toc
 	rputs	"		</div>"
+	rputs	"		<div id=\"clearfix\"></div>"
 	rputs	"		<hr>"
 	rputs	"		<i>Powered by <a href=\"http://nishi.boats/koakuma\">Koakuma</a> $KOAKUMA_VERSION</i>"
 	rputs	"	</body>"
@@ -311,6 +312,26 @@ if { [catch {
 		rputs "Content-Type: text/html"
 	}
 	if { "$path" == "/" } {
+		set has_projects 0
+		add_toc "Projects"
+		open_projects
+		scan_projects {
+			upvar 1 has_projects has_projects
+			if { "$has_projects" == "0" } {
+				set has_projects 1
+				tputs	"<table border=\"0\">"
+			}
+			tputs	"<tr>"
+			tputs	"	<th><a href=\"/koakuma/project/$name\">$name</a></th>"
+			tputs	"	<td>[html_escape "$description"]</td>"
+			tputs	"</tr>"
+		}
+		close_projects
+		if { "$has_projects" == "1" } {
+			tputs	"</table>"
+		} else {
+			tputs	"No projects have been added, yet."
+		}
 		add_toc "Tcl Information"
 		tputs	"<table border=\"0\">"
 		tputs	"	<tr>"
@@ -348,30 +369,10 @@ if { [catch {
 		tputs	"</table>"
 		add_toc "Components"
 		loop_components {
-			add_toc2 "${name} (${genre} component)"
+			add_toc2 "${name} (${genre})"
 			if { [llength [info procs "${name}_info"]] > 0 } {
 				${name}_info
 			}
-		}
-		set has_projects 0
-		add_toc "Projects"
-		open_projects
-		scan_projects {
-			upvar 1 has_projects has_projects
-			if { "$has_projects" == "0" } {
-				set has_projects 1
-				tputs	"<table border=\"0\">"
-			}
-			tputs	"<tr>"
-			tputs	"	<th><a href=\"/koakuma/project/$name\">$name</a></th>"
-			tputs	"	<td>[html_escape "$description"]</td>"
-			tputs	"</tr>"
-		}
-		close_projects
-		if { "$has_projects" == "1" } {
-			tputs	"</table>"
-		} else {
-			tputs	"No projects have been added, yet."
 		}
 
 		rputs ""
