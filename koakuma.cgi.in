@@ -610,22 +610,6 @@ if { [catch {
 				tputs	"<table border=\"0\">"
 				tputs	"	<tr>"
 				tputs	"		<th>"
-				tputs	"			Last run"
-				tputs	"		</th>"
-				tputs	"		<td>"
-				if { [file exists "@@PREFIX@@/lib/koakuma/db/data/$projname/lastrun"] } {
-					set fid [open "@@PREFIX@@/lib/koakuma/db/data/$projname/lastrun" "r"]
-					set date "[clock format "[gets $fid]" -format "%a %b %d %H:%M:%S %Z %Y"]"
-					close $fid
-					tputs "$date"
-				} else {
-					tputs "No builds yet"
-				}
-				tputs	"			"
-				tputs	"		</td>"
-				tputs	"	</tr>"
-				tputs	"	<tr>"
-				tputs	"		<th>"
 				tputs	"			Status"
 				tputs	"		</th>"
 				tputs	"		<td>"
@@ -639,6 +623,22 @@ if { [catch {
 					close $fid
 				} else {
 					tputs "Idle"
+				}
+				tputs	"			"
+				tputs	"		</td>"
+				tputs	"	</tr>"
+				tputs	"	<tr>"
+				tputs	"		<th>"
+				tputs	"			Last run"
+				tputs	"		</th>"
+				tputs	"		<td>"
+				if { [file exists "@@PREFIX@@/lib/koakuma/db/data/$projname/lastrun"] } {
+					set fid [open "@@PREFIX@@/lib/koakuma/db/data/$projname/lastrun" "r"]
+					set date "[clock format "[gets $fid]" -format "%a %b %d %H:%M:%S %Z %Y"]"
+					close $fid
+					tputs "$date"
+				} else {
+					tputs "No builds yet"
 				}
 				tputs	"			"
 				tputs	"		</td>"
