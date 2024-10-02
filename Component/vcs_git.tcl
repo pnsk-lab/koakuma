@@ -3,7 +3,6 @@ lappend components "Git" "Git Integration" "1.00" "VCS"
 
 proc Git_info {} {
 	regexp {[0-9]+\.[0-9]+\.[0-9]+} "[exec git --version]" version
-	add_toc2 "Git"
 	tputs	"<table border=\"0\">"
 	tputs	"	<tr>"
 	tputs	"		<th>"

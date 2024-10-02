@@ -348,6 +348,7 @@ if { [catch {
 		tputs	"</table>"
 		add_toc "Components"
 		loop_components {
+			add_toc2 "${name} (${genre} component)"
 			if { [llength [info procs "${name}_info"]] > 0 } {
 				${name}_info
 			}
