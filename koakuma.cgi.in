@@ -705,8 +705,8 @@ if { [catch {
 					tputs	"		<td>"
 					if { [file exists "@@PREFIX@@/lib/koakuma/db/data/$projname/successbuild"] } {
 						set fid [open "@@PREFIX@@/lib/koakuma/db/data/$projname/successbuild" "r"]
-						set sucbui "[gets $fid].0"
-						tputs "[format %.2f [expr $sucbui / [llength $builds] * 100]]% ($sucbui/[llength $builds])"
+						set sucbui "[gets $fid]"
+						tputs "[format %.2f [expr ${sucbui}.0 / [llength $builds] * 100]]% ($sucbui/[llength $builds])"
 						close $fid
 					}
 					tputs	"			"
