@@ -486,8 +486,13 @@ if { [catch {
 								set fid [open "@@PREFIX@@/lib/koakuma/db/data/$projname/build-$count/log" "w"]
 								set fail 0
 
+								fconfigure $fid -encoding binary -translation binary
+
 								dup $fid stdout
 								dup $fid stderr
+
+								fconfigure stdout -encoding binary -translation binary
+								fconfigure stderr -encoding binary -translation binary
 
 								puts "Build trigger description: $builddesc"
 								puts "===== Checkout"
