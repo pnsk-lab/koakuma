@@ -254,7 +254,7 @@ proc start_html {title has_toc} {
 	rputs	"<html>"
 	rputs	"	<head>"
 	rputs	"		<meta http-equiv=\"Content-Type\" content=\"text/html;charset=UTF-8\">"
-	rputs	"		<title>$title - $instnace_name</title>"
+	rputs	"		<title>$title - $instance_name</title>"
 	rputs	"		<link rel=\"stylesheet\" href=\"$css\">"
 	set msie " src=\"$koakuma_png\""
 	if { [info exists "env(HTTP_USER_AGENT)"] } {
