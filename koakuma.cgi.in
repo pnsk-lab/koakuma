@@ -59,6 +59,9 @@ if { ![info exists env(PATH_INFO)] } {
 	exiting 0
 }
 
+set koakuma_png "/static/koakuma.png"
+set css "/static/style.css"
+set running_png "/static/continued.png"
 set instance_name "Koakuma"
 set image_alt "Koakuma by Kasuya Baian"
 
