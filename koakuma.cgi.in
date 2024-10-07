@@ -249,7 +249,7 @@ proc sanitize {data} {
 }
 
 proc start_html {title has_toc} {
-	global toc env koakuma_png css what instance_name
+	global toc env koakuma_png css what instance_name image_alt
 	rputs	"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">"
 	rputs	"<html>"
 	rputs	"	<head>"
