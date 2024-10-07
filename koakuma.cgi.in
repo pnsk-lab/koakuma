@@ -59,7 +59,7 @@ if { ![info exists env(PATH_INFO)] } {
 	exiting 0
 }
 
-set title "Koakuma"
+set instance_name "Koakuma"
 set image_alt "Koakuma by Kasuya Baian"
 
 if { [file exists "@@PREFIX@@/etc/koakuma/cgi.conf"] } {
