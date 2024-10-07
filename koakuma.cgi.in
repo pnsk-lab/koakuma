@@ -59,6 +59,9 @@ if { ![info exists env(PATH_INFO)] } {
 	exiting 0
 }
 
+set title "Koakuma"
+set image_alt "Koakuma by Kasuya Baian"
+
 if { [file exists "@@PREFIX@@/etc/koakuma/cgi.conf"] } {
 	if { [catch {
 		source "@@PREFIX@@/etc/koakuma/cgi.conf"
@@ -246,12 +249,12 @@ proc sanitize {data} {
 }
 
 proc start_html {title has_toc} {
-	global toc env koakuma_png css what
+	global toc env koakuma_png css what instnace_name
 	rputs	"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">"
 	rputs	"<html>"
 	rputs	"	<head>"
 	rputs	"		<meta http-equiv=\"Content-Type\" content=\"text/html;charset=UTF-8\">"
-	rputs	"		<title>$title - Koakuma</title>"
+	rputs	"		<title>$title - $instnace_name</title>"
 	rputs	"		<link rel=\"stylesheet\" href=\"$css\">"
 	set msie " src=\"$koakuma_png\""
 	if { [info exists "env(HTTP_USER_AGENT)"] } {
@@ -262,11 +265,11 @@ proc start_html {title has_toc} {
 	rputs	"	</head>"
 	rputs	"	<body>"
 	rputs	"		<a href=\"/koakuma\" id=\"gomain\">"
-	rputs	"			<img alt=\"Koakuma by Kasuya Baian\" height=\"128px\"$msie>"
+	rputs	"			<img alt=\"$image_alt\" height=\"128px\"$msie>"
 	rputs	"		</a>"
 	rputs	"		<div id=\"space\"></div>"
 	rputs	"		<div id=\"title\">"
-	rputs	"			Koakuma"
+	rputs	"			$instnace_name"
 	rputs	"		</div>"
 	rputs	"		<a href=\"$env(SCRIPT_NAME)\">Root</a>"
 	if { "$has_toc" == "1" } {
