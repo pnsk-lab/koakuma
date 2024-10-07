@@ -269,7 +269,7 @@ proc start_html {title has_toc} {
 	rputs	"		</a>"
 	rputs	"		<div id=\"space\"></div>"
 	rputs	"		<div id=\"title\">"
-	rputs	"			$instnace_name"
+	rputs	"			$instance_name"
 	rputs	"		</div>"
 	rputs	"		<a href=\"$env(SCRIPT_NAME)\">Root</a>"
 	if { "$has_toc" == "1" } {
